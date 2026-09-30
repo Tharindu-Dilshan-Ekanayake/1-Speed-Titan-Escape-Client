@@ -2,8 +2,18 @@
 
 :root {
   color-scheme: dark;
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-family: Fredoka, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+
+  --ink: #1a1330;
+  --ink-soft: #2a2148;
+  --gold: #ffc21a;
+  --gold-hi: #fff3a0;
+  --pink: #ff4fb8;
+  --cyan: #39d7ff;
+  --green: #3bff7a;
+  --red: #ff3b4f;
+  --panel: #2b2350;
 }
 
 html,
@@ -18,4 +28,653 @@ body,
 canvas {
   display: block;
   touch-action: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * HUD scale: everything inside .hud is sized in em, so one font-size scales the
+ * whole interface with the viewport (desktop -> phone).
+ * ------------------------------------------------------------------------- */
+.hud {
+  font-size: clamp(9px, min(0.95vw, 1.75vh), 19px);
+  font-weight: 700;
+  color: #fff;
+  user-select: none;
+}
+
+/* Thick cartoon outline, like the original's UI text. */
+.ol {
+  -webkit-text-stroke: 0.22em var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 0 0.12em 0 var(--ink);
+  letter-spacing: 0.01em;
+}
+.ol-sm {
+  -webkit-text-stroke: 0.16em var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 0 0.08em 0 var(--ink);
+}
+.title-font {
+  font-family: 'Luckiest Guy', Fredoka, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+}
+
+.grad-gold {
+  background: linear-gradient(180deg, #fffbe0 0%, #ffe45c 45%, #ffae00 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Diagonal checker texture used on the original's buttons and bars. */
+.checker {
+  background-image: repeating-conic-gradient(rgba(255, 255, 255, 0.13) 0 25%, transparent 0 50%);
+  background-size: 1.1em 1.1em;
+}
+
+/* Chunky button: thick ink border, glossy top, pressed state. */
+.btn {
+  position: relative;
+  border: 0.22em solid var(--ink);
+  border-radius: 0.8em;
+  box-shadow:
+    inset 0 -0.3em 0 rgba(0, 0, 0, 0.22),
+    inset 0 0.25em 0 rgba(255, 255, 255, 0.35),
+    0 0.25em 0 var(--ink);
+  transition:
+    transform 0.08s ease,
+    filter 0.15s ease;
+  cursor: pointer;
+}
+.btn:hover {
+  filter: brightness(1.08) saturate(1.1);
+  transform: translateY(-0.06em);
+}
+.btn:active {
+  transform: translateY(0.14em);
+  box-shadow:
+    inset 0 -0.15em 0 rgba(0, 0, 0, 0.22),
+    inset 0 0.2em 0 rgba(255, 255, 255, 0.3),
+    0 0.08em 0 var(--ink);
+}
+.btn:disabled {
+  filter: grayscale(0.85) brightness(0.8);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.b-gold {
+  background-color: #ffcc1f;
+  background-image:
+    repeating-conic-gradient(rgba(255, 255, 255, 0.16) 0 25%, transparent 0 50%),
+    linear-gradient(180deg, #ffe45c, #ffb300);
+  background-size:
+    1.1em 1.1em,
+    100% 100%;
+}
+.b-green {
+  background-image:
+    repeating-conic-gradient(rgba(255, 255, 255, 0.14) 0 25%, transparent 0 50%),
+    linear-gradient(180deg, #6bff7a, #13c43a);
+  background-size:
+    1.1em 1.1em,
+    100% 100%;
+}
+.b-orange {
+  background-image:
+    repeating-conic-gradient(rgba(255, 255, 255, 0.14) 0 25%, transparent 0 50%),
+    linear-gradient(180deg, #ffb347, #ff6a00);
+  background-size:
+    1.1em 1.1em,
+    100% 100%;
+}
+.b-blue {
+  background-image:
+    repeating-conic-gradient(rgba(255, 255, 255, 0.14) 0 25%, transparent 0 50%),
+    linear-gradient(180deg, #5fe0ff, #1b7dff);
+  background-size:
+    1.1em 1.1em,
+    100% 100%;
+}
+.b-yellow {
+  background-image:
+    repeating-conic-gradient(rgba(255, 255, 255, 0.18) 0 25%, transparent 0 50%),
+    linear-gradient(180deg, #fff27a, #ffc800);
+  background-size:
+    1.1em 1.1em,
+    100% 100%;
+}
+.b-red {
+  background-image:
+    repeating-conic-gradient(rgba(255, 255, 255, 0.14) 0 25%, transparent 0 50%),
+    linear-gradient(180deg, #ff6b6b, #d8102e);
+  background-size:
+    1.1em 1.1em,
+    100% 100%;
+}
+.b-pink {
+  background-image:
+    repeating-conic-gradient(rgba(255, 255, 255, 0.14) 0 25%, transparent 0 50%),
+    linear-gradient(180deg, #ff8fd8, #ff2f8e);
+  background-size:
+    1.1em 1.1em,
+    100% 100%;
+}
+.b-purple {
+  background-image:
+    repeating-conic-gradient(rgba(255, 255, 255, 0.12) 0 25%, transparent 0 50%),
+    linear-gradient(180deg, #c07bff, #7b2dff);
+  background-size:
+    1.1em 1.1em,
+    100% 100%;
+}
+.b-dark {
+  background-image:
+    repeating-conic-gradient(rgba(255, 255, 255, 0.05) 0 25%, transparent 0 50%),
+    linear-gradient(180deg, #3d3468, #251d45);
+  background-size:
+    1.1em 1.1em,
+    100% 100%;
+}
+
+/* Big icon buttons in the left menu: icon + outlined label, no box. */
+.icon-btn {
+  cursor: pointer;
+  transition: transform 0.12s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.icon-btn:hover {
+  transform: scale(1.08) rotate(-2deg);
+}
+.icon-btn:active {
+  transform: scale(0.94);
+}
+
+/* Panel (modal) chrome. */
+.panel {
+  border: 0.28em solid var(--ink);
+  border-radius: 1.2em;
+  box-shadow:
+    0 0.4em 0 var(--ink),
+    0 1.5em 3em rgba(0, 0, 0, 0.45);
+  background-color: #3a2f6b;
+  background-image:
+    repeating-conic-gradient(rgba(255, 255, 255, 0.035) 0 25%, transparent 0 50%),
+    linear-gradient(180deg, #43377a, #2a2150);
+  background-size:
+    2em 2em,
+    100% 100%;
+}
+.panel-scroll::-webkit-scrollbar {
+  width: 0.7em;
+}
+.panel-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 1em;
+}
+
+.card {
+  border: 0.2em solid var(--ink);
+  border-radius: 0.9em;
+  box-shadow: 0 0.2em 0 var(--ink);
+}
+
+/* --- Animations ----------------------------------------------------------------- */
+@keyframes pop-in {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes float-up {
+  0% {
+    transform: translate(-50%, 0) scale(0.6);
+    opacity: 0;
+  }
+  15% {
+    transform: translate(-50%, -0.6em) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -4.5em) scale(0.9);
+    opacity: 0;
+  }
+}
+@keyframes banner {
+  0% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+  12% {
+    transform: scale(0.95);
+    opacity: 1;
+  }
+  18% {
+    transform: scale(1);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+}
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-0.18em);
+  }
+}
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-8deg);
+  }
+  75% {
+    transform: rotate(8deg);
+  }
+}
+@keyframes shine {
+  0% {
+    background-position: -150% 0;
+  }
+  100% {
+    background-position: 250% 0;
+  }
+}
+@keyframes flash-red {
+  0% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0.35;
+  }
+}
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes toast-in {
+  0% {
+    transform: translateY(-1em) scale(0.8);
+    opacity: 0;
+  }
+  12% {
+    transform: translateY(0) scale(1.05);
+    opacity: 1;
+  }
+  20% {
+    transform: scale(1);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.anim-pop {
+  animation: pop-in 0.35s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+.anim-bob {
+  animation: bob 1.6s ease-in-out infinite;
+}
+.anim-wiggle {
+  animation: wiggle 0.6s ease-in-out infinite;
+}
+.shine {
+  background-image: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.55) 50%, transparent 70%);
+  background-size: 60% 100%;
+  background-repeat: no-repeat;
+  animation: shine 2.6s ease-in-out infinite;
+}
+
+/* Custom speed input: no spinner arrows. */
+.speed-input::-webkit-outer-spin-button,
+.speed-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.speed-input {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* --- Menu tiles (left menu) ------------------------------------------------------- */
+.menu-tile {
+  position: relative;
+  width: 5.8em;
+  height: 5.8em;
+  border: 0.24em solid var(--ink);
+  border-radius: 1.2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow:
+    inset 0 -0.45em 0 rgba(0, 0, 0, 0.25),
+    inset 0 0.3em 0 rgba(255, 255, 255, 0.35),
+    0 0.3em 0 var(--ink),
+    0 0.7em 1.2em rgba(20, 10, 40, 0.35);
+  transition:
+    transform 0.14s cubic-bezier(0.3, 1.6, 0.5, 1),
+    filter 0.15s ease;
+}
+.menu-tile:hover {
+  transform: translateY(-0.15em) scale(1.06) rotate(-2deg);
+  filter: brightness(1.1) saturate(1.1);
+}
+.menu-tile:active {
+  transform: translateY(0.15em) scale(0.96);
+  box-shadow:
+    inset 0 -0.2em 0 rgba(0, 0, 0, 0.25),
+    inset 0 0.25em 0 rgba(255, 255, 255, 0.3),
+    0 0.1em 0 var(--ink);
+}
+.menu-tile-shine {
+  position: absolute;
+  inset: 0.2em 0.2em 50% 0.2em;
+  border-radius: 0.9em 0.9em 1.6em 1.6em;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+.menu-tile-icon {
+  position: relative;
+  margin-top: -0.7em;
+  filter: drop-shadow(0 0.15em 0 rgba(26, 19, 48, 0.45));
+}
+.menu-tile-label {
+  position: absolute;
+  bottom: -0.55em;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.35em;
+  white-space: nowrap;
+  line-height: 1;
+}
+.menu-tile-alert {
+  position: absolute;
+  right: -0.45em;
+  bottom: 1.2em;
+  width: 1.4em;
+  height: 1.4em;
+  border-radius: 999px;
+  border: 0.14em solid var(--ink);
+  background: #ff2f4f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1em;
+}
+.tile-red {
+  background: radial-gradient(circle at 50% 30%, #ff9b8a, #e8263f 60%, #a3102a);
+}
+.tile-purple {
+  background: radial-gradient(circle at 50% 30%, #d9a6ff, #8a3dff 60%, #4c16a8);
+}
+.tile-orange {
+  background: radial-gradient(circle at 50% 30%, #ffe08a, #ff9a1f 60%, #c85a00);
+}
+.tile-pink {
+  background: radial-gradient(circle at 50% 30%, #ffc2ec, #ff4fb8 60%, #b01c7c);
+}
+.tile-blue {
+  background: radial-gradient(circle at 50% 30%, #a8ecff, #2f9bff 60%, #1446c9);
+}
+.tile-dark {
+  background: radial-gradient(circle at 50% 30%, #6f63a8, #3a2f6b 60%, #1f1840);
+}
+.menu-tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 1em;
+  background-image: repeating-conic-gradient(rgba(255, 255, 255, 0.08) 0 25%, transparent 0 50%);
+  background-size: 1.1em 1.1em;
+  pointer-events: none;
+}
+
+/* Keyboard hint badge, top-left of a button. */
+.keycap {
+  z-index: 2;
+  min-width: 1.55em;
+  height: 1.55em;
+  padding: 0 0.3em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.45em;
+  border: 0.14em solid var(--ink);
+  background: linear-gradient(180deg, #ffffff, #d9d4ee);
+  box-shadow: 0 0.14em 0 var(--ink);
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 0.95em;
+  line-height: 1;
+  font-family: Fredoka, sans-serif;
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+}
+
+.wins-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.15em 0.9em 0.15em 0.3em;
+  border-radius: 999px;
+  border: 0.2em solid var(--ink);
+  background: linear-gradient(180deg, rgba(40, 30, 80, 0.85), rgba(22, 16, 44, 0.85));
+  box-shadow: 0 0.2em 0 var(--ink);
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+.wins-pill:hover {
+  transform: scale(1.05);
+}
+
+/* --- Daily rewards ------------------------------------------------------------------ */
+.daily-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25em;
+  min-height: 9.5em;
+  padding: 0.5em 0.3em;
+  border: 0.2em solid var(--ink);
+  border-radius: 0.9em;
+  box-shadow: 0 0.2em 0 var(--ink);
+  background: linear-gradient(180deg, #3a2f6b, #1f1840);
+  opacity: 0.8;
+}
+.daily-card.is-big {
+  background: linear-gradient(180deg, #8a3dff, #3a1680);
+}
+.daily-card.is-today {
+  opacity: 1;
+  background: linear-gradient(180deg, #ffd43a, #ff8a1f);
+  transform: scale(1.06);
+  box-shadow:
+    0 0.2em 0 var(--ink),
+    0 0 1.2em 0.2em rgba(255, 210, 60, 0.75);
+  animation: daily-glow 1.4s ease-in-out infinite;
+}
+.daily-card.is-done {
+  opacity: 1;
+  background: linear-gradient(180deg, #2fbf5b, #137a35);
+}
+.daily-check {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 40, 20, 0.35);
+  border-radius: 0.7em;
+}
+@keyframes daily-glow {
+  50% {
+    box-shadow:
+      0 0.2em 0 var(--ink),
+      0 0 2em 0.5em rgba(255, 210, 60, 0.9);
+  }
+}
+.anim-pulse {
+  animation: pulse-btn 1.2s ease-in-out infinite;
+}
+@keyframes pulse-btn {
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+/* --- Bottom-right corner: sound toggle + dev stage skipper ------------------------- */
+.sound-btn {
+  width: 4.2em;
+  height: 4.2em;
+  border-radius: 999px;
+  border: 0.22em solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: radial-gradient(circle at 50% 30%, #a8ecff, #2f9bff 60%, #1446c9);
+  box-shadow:
+    inset 0 -0.35em 0 rgba(0, 0, 0, 0.25),
+    inset 0 0.25em 0 rgba(255, 255, 255, 0.35),
+    0 0.25em 0 var(--ink),
+    0 0.6em 1em rgba(20, 10, 40, 0.35);
+  transition:
+    transform 0.14s cubic-bezier(0.3, 1.6, 0.5, 1),
+    filter 0.15s ease;
+}
+.sound-btn.is-off {
+  background: radial-gradient(circle at 50% 30%, #6f63a8, #3a2f6b 60%, #1f1840);
+}
+.sound-btn:hover {
+  transform: scale(1.08) rotate(-4deg);
+  filter: brightness(1.1);
+}
+.sound-btn:active {
+  transform: scale(0.94);
+}
+.dev-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.25em 0.35em;
+  border-radius: 999px;
+  border: 0.18em solid var(--ink);
+  background: linear-gradient(180deg, rgba(40, 30, 80, 0.88), rgba(22, 16, 44, 0.88));
+  box-shadow: 0 0.18em 0 var(--ink);
+}
+.dev-nav-btn {
+  display: flex;
+  padding: 0.1em;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+.dev-nav-btn:hover {
+  transform: scale(1.15);
+}
+.dev-nav-label {
+  min-width: 3.6em;
+  text-align: center;
+  font-size: 0.95em;
+  line-height: 1.05;
+  color: #ffe45c;
+}
+
+/* --- Loading screen -------------------------------------------------------------- */
+@keyframes rays {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+@keyframes run-bounce {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-6deg);
+  }
+  50% {
+    transform: translateY(-0.5em) rotate(6deg);
+  }
+}
+@keyframes bar-stripes {
+  to {
+    background-position: 2.2em 0;
+  }
+}
+.loading-rays {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  width: 180vmax;
+  height: 180vmax;
+  transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(rgba(255, 255, 255, 0.07) 0deg 10deg, transparent 10deg 20deg);
+  animation: rays 40s linear infinite;
+}
+/*
+ * Logo lettering: a thick ink outline with a drop shadow underneath, and the
+ * gradient fill drawn as a separate layer on top (a gradient clipped to text can't
+ * share an element with a stroke and shadow without going muddy).
+ */
+.logo-text {
+  position: relative;
+  display: inline-block;
+  color: var(--ink);
+  -webkit-text-stroke: 0.2em var(--ink);
+  paint-order: stroke fill;
+  text-shadow:
+    0 0.1em 0 var(--ink),
+    0 0.16em 0.3em rgba(10, 4, 30, 0.55);
+}
+.logo-text::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 0 0.12em rgba(255, 255, 255, 0.35));
+}
+.logo-gold::after {
+  background-image: linear-gradient(180deg, #ffffff 0%, #fff3a0 22%, #ffd21f 55%, #ff9a00 100%);
+}
+.logo-cyan::after {
+  background-image: linear-gradient(180deg, #ffffff 0%, #b8f6ff 22%, #39d7ff 58%, #1f7bff 100%);
+}
+.logo-white::after {
+  background-image: linear-gradient(180deg, #ffffff 0%, #ffffff 55%, #d9d2ff 100%);
+}
+
+.loading-bar-fill {
+  background-image:
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.28) 0 0.55em, transparent 0.55em 1.1em),
+    linear-gradient(180deg, #7ff4ff 0%, #22d0f2 45%, #0ba5d6 100%);
+  background-size:
+    2.2em 100%,
+    100% 100%;
+  animation: bar-stripes 0.6s linear infinite;
 }

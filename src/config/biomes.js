@@ -1,0 +1,197 @@
+/**
+ * Stage biomes. Every stage is its own place: what's underneath you, what walls it
+ * in, what it's built from, the sky, and the scenery.
+ *
+ *   half   half-width of the playable area (the course weaves across all of it)
+ *   floor  what fills the space below the course (see FLOOR_KINDS)
+ *   walls  castle | cliff | trees | houses | metal | none
+ *   top / body   platform materials
+ *   sky, fog     atmosphere while you're in the stage
+ */
+export const BIOMES = {
+  castle: {
+    label: 'Titan Castle',
+    half: 24,
+    floor: 'lava',
+    walls: 'castle',
+    wallMat: 'brick',
+    top: 'tile',
+    body: 'wood',
+    sky: '#d9d5f7',
+    fog: [110, 360],
+    decor: 'spires',
+  },
+  forest: {
+    label: 'Forest of Giant Trees',
+    half: 32,
+    floor: 'ground',
+    walls: 'trees',
+    top: 'bark',
+    body: 'darkwood',
+    sky: '#bfe8d6',
+    fog: [70, 300],
+    decor: 'forest',
+  },
+  city: {
+    label: 'Wall Rose District',
+    half: 32,
+    floor: 'street',
+    walls: 'houses',
+    top: 'rooftile',
+    body: 'plaster',
+    sky: '#ffd9b0',
+    fog: [110, 380],
+    decor: 'city',
+  },
+  sky: {
+    label: 'Sky Islands',
+    half: 34,
+    floor: 'void',
+    walls: 'none',
+    top: 'grass',
+    body: 'dirt',
+    sky: '#8fd3ff',
+    fog: [130, 420],
+    decor: 'clouds',
+  },
+  river: {
+    label: 'Jungle Rapids',
+    half: 30,
+    floor: 'water',
+    walls: 'cliff',
+    wallMat: 'mossrock',
+    top: 'grass',
+    body: 'dirt',
+    sky: '#b5ecff',
+    fog: [90, 340],
+    decor: 'jungle',
+  },
+  desert: {
+    label: 'Sandstorm Dunes',
+    half: 32,
+    floor: 'quicksand',
+    walls: 'cliff',
+    wallMat: 'sandstone',
+    top: 'sandstone',
+    body: 'sandstone',
+    sky: '#ffe2a8',
+    fog: [90, 330],
+    decor: 'desert',
+  },
+  ice: {
+    label: 'Frozen Lake',
+    half: 30,
+    floor: 'icewater',
+    walls: 'cliff',
+    wallMat: 'snowrock',
+    top: 'snow',
+    body: 'frost',
+    sky: '#d8f1ff',
+    fog: [80, 320],
+    decor: 'ice',
+  },
+  swamp: {
+    label: 'Toxic Swamp',
+    half: 28,
+    floor: 'acid',
+    walls: 'trees',
+    top: 'moss',
+    body: 'darkwood',
+    sky: '#a6c79a',
+    fog: [50, 250],
+    decor: 'swamp',
+  },
+  factory: {
+    label: 'Gear Works',
+    half: 26,
+    floor: 'molten',
+    walls: 'metal',
+    top: 'metalplate',
+    body: 'iron',
+    sky: '#c7c2d6',
+    fog: [80, 300],
+    decor: 'factory',
+  },
+  volcano: {
+    label: 'Volcano Core',
+    half: 30,
+    floor: 'lava',
+    walls: 'cliff',
+    wallMat: 'basalt',
+    top: 'basalt',
+    body: 'rock',
+    sky: '#ffb08a',
+    fog: [60, 280],
+    decor: 'volcano',
+  },
+  crystal: {
+    label: 'Crystal Caverns',
+    half: 28,
+    floor: 'void',
+    walls: 'cliff',
+    wallMat: 'crystalrock',
+    top: 'crystaltile',
+    body: 'crystalrock',
+    sky: '#2a2150',
+    fog: [40, 230],
+    decor: 'crystal',
+  },
+  // --- World 2 -----------------------------------------------------------------------
+  frostcastle: {
+    label: 'Frozen Citadel',
+    half: 24,
+    floor: 'voidlava',
+    walls: 'castle',
+    wallMat: 'icebrick',
+    top: 'ice',
+    body: 'darkstone',
+    sky: '#1d2352',
+    fog: [70, 300],
+    decor: 'spires',
+  },
+  abyss: {
+    label: 'The Abyss',
+    half: 34,
+    floor: 'void',
+    walls: 'none',
+    top: 'crystaltile',
+    body: 'darkstone',
+    sky: '#120b2e',
+    fog: [60, 300],
+    decor: 'abyss',
+  },
+  glacier: {
+    label: 'Glacier Rift',
+    half: 30,
+    floor: 'icewater',
+    walls: 'cliff',
+    wallMat: 'snowrock',
+    top: 'frost',
+    body: 'frost',
+    sky: '#9fd4ff',
+    fog: [60, 280],
+    decor: 'ice',
+  },
+}
+
+/**
+ * What's below the course.
+ *   death   'touch' - dies when the feet dip below KILL_Y
+ *           'fall'  - dies a long way down (VOID_KILL_Y)
+ *           'deep'  - a drop to titan-infested ground (DEEP_KILL_Y)
+ *           'sink'  - slows you, then swallows you
+ *           null    - swimmable
+ */
+export const FLOOR_KINDS = {
+  lava: { death: 'touch', msg: 'Burned by lava!' },
+  voidlava: { death: 'touch', msg: 'Burned by void fire!' },
+  molten: { death: 'touch', msg: 'Fell into molten metal!' },
+  acid: { death: 'touch', msg: 'Melted in toxic sludge!' },
+  icewater: { death: 'touch', msg: 'Frozen solid!' },
+  ground: { death: 'deep', msg: 'A titan grabbed you!' },
+  street: { death: 'deep', msg: 'A titan grabbed you!' },
+  quicksand: { death: 'sink', msg: 'Swallowed by quicksand!' },
+  void: { death: 'fall', msg: 'Fell into the void!' },
+  water: { death: null },
+  tide: { death: 'touch', msg: 'The lava tide got you!' },
+}

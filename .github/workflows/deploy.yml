@@ -1,0 +1,57 @@
+# Build the client and upload it to Bloxity hosting.
+#   push to `dev`  -> https://speed-titan-escape.dev.play.bloxity.io
+#   push to `main` -> https://speed-titan-escape.play.bloxity.io
+#
+# One repo secret is needed: LEGION_DEPLOY_TOKEN (from My Games on Bloxity).
+name: Deploy frontend
+
+on:
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  GAME_ID: speed-titan-escape
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Resolve channel
+        id: meta
+        run: |
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then echo "channel=prod" >> "$GITHUB_OUTPUT"; else echo "channel=dev" >> "$GITHUB_OUTPUT"; fi
+          echo "sha=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+
+      - run: npm ci
+
+      - name: Build
+        env:
+          VITE_GAME_SLUG: speed-titan-escape
+          VITE_GAME_ID: speed-titan-escape
+          VITE_NET_MODE: legion
+          VITE_BLOXITY_PORTAL_URL: https://bloxity.io
+          VITE_BLOXITY_API_URL: https://api.bloxity.io
+        run: npm run build
+
+      - name: Zip
+        run: cd dist && zip -qr ../build.zip .
+
+      - name: Upload to Bloxity hosting
+        env:
+          LEGION_DEPLOY_TOKEN: ${{ secrets.LEGION_DEPLOY_TOKEN }}
+        run: |
+          curl -sf -X POST \
+            "https://api.bloxity.io/v1/hosting/games/${GAME_ID}/frontend?channel=${{ steps.meta.outputs.channel }}&version=${{ steps.meta.outputs.sha }}" \
+            -H "Authorization: Bearer $LEGION_DEPLOY_TOKEN" \
+            -H "Content-Type: application/zip" \
+            --data-binary @build.zip

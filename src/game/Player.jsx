@@ -451,7 +451,8 @@ export function Player({ onAvatarReady, bodyRef: externalBodyRef }) {
 
     // --- Horizontal input, camera relative -----------------------------------------------
     if (k.joyX || k.joyY) _input.set(k.joyX, 0, k.joyY)
-    else _input.set((k.right ? 1 : 0) - (k.left ? 1 : 0), 0, (k.backward ? 1 : 0) - (k.forward ? 1 : 0))
+    // A / D turn the camera (see FollowCamera) rather than strafing; W / S move.
+    else _input.set(0, 0, (k.backward ? 1 : 0) - (k.forward ? 1 : 0))
     const hasInput = _input.lengthSq() > 0.01
     const walkSpeed = currentWalkspeed(progress) * STUD
     let hx = 0

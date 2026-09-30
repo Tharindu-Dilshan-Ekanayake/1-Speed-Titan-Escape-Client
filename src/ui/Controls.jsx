@@ -4,7 +4,8 @@ import { useState } from 'react'
 export function Controls() {
   const [open, setOpen] = useState(true)
   const rows = [
-    ['W A S D', 'Move'],
+    ['W S', 'Move'],
+    ['A D', 'Turn camera'],
     ['Space', 'Jump'],
     ['Space x2', 'Double Jump'],
     ['E / Q', 'Grapple'],

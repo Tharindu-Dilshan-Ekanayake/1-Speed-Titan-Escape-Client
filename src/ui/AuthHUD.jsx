@@ -2,12 +2,30 @@ import { useBloxity } from '../bloxity/BloxityContext'
 import { useNet } from '../net/net'
 
 /**
- * Identity pill, top-right. Sign-in is automatic: a Bloxity session if there is
- * one, otherwise a guest - no login/logout buttons. Progress is saved per
- * identity. The little people count is how many are in this lobby.
+ * Identity pill, top-right. Sign-in is automatic on load: a Bloxity session if
+ * there is one, otherwise a guest. As a guest the pill is a button that opens the
+ * Bloxity login; once signed in it is just a badge (no logout, nothing to click).
+ * Progress is saved per identity. The little people count is how many are in this
+ * lobby.
  */
+function Pill({ as: Tag, children, onClick }) {
+  const clickable = Tag === 'button'
+  return (
+    <Tag
+      type={clickable ? 'button' : undefined}
+      onClick={onClick}
+      title={clickable ? 'Log in to Bloxity' : undefined}
+      className={`flex items-center gap-[0.5em] rounded-full border-[0.18em] border-[var(--ink)] bg-[#16102c]/70 py-[0.2em] pl-[0.2em] pr-[0.9em] text-left ${
+        clickable ? 'cursor-pointer transition-transform hover:scale-105 hover:bg-[#241a4a]/80 active:scale-95' : 'cursor-default'
+      }`}
+    >
+      {children}
+    </Tag>
+  )
+}
+
 export function AuthHUD() {
-  const { identity, isLoggedIn } = useBloxity()
+  const { identity, isLoggedIn, login } = useBloxity()
   const online = useNet((s) => s.status === 'online')
   const count = useNet((s) => Object.keys(s.players).length)
 
@@ -26,7 +44,7 @@ export function AuthHUD() {
           {count}/8
         </span>
       )}
-      <div className="flex items-center gap-[0.5em] rounded-full border-[0.18em] border-[var(--ink)] bg-[#16102c]/70 py-[0.2em] pl-[0.2em] pr-[0.9em]">
+      <Pill as={isLoggedIn ? 'div' : 'button'} onClick={isLoggedIn ? undefined : login}>
         {pfp ? (
           <img src={pfp} alt="" className="h-[2.6em] w-[2.6em] rounded-full object-cover ring-2 ring-white/40" />
         ) : (
@@ -36,9 +54,9 @@ export function AuthHUD() {
         )}
         <div className="leading-tight">
           <div className="ol-sm text-[1.15em]">{name}</div>
-          <div className="text-[0.85em] font-semibold text-white/65">{isLoggedIn ? 'Bloxity player' : 'Guest'}</div>
+          <div className="text-[0.85em] font-semibold text-white/65">{isLoggedIn ? 'Bloxity player' : 'Guest · tap to log in'}</div>
         </div>
-      </div>
+      </Pill>
     </div>
   )
 }

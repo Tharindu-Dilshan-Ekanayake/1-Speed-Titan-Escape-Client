@@ -18,7 +18,7 @@ server the game just plays solo (it retries quietly in the background).
 
 ## Controls
 
-WASD move · Space jump (press again in the air to double jump) · E / Q grapple ·
+W/S move · A/D turn the camera · Space jump (press again in the air to double jump) · E / Q grapple ·
 right-drag camera · scroll zoom. Menu hotkeys: R Rebirth · H Heroes · B Store ·
 G Rewards · T Teleport · I Stats · 1-4 Speed packs. Phones get an on-screen stick,
 Jump and Grapple. The speaker button (bottom-right) mutes music and effects.

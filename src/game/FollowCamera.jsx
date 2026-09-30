@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import { Vector3 } from 'three'
 
 import { useSession } from '../state/sessionStore'
+import { inputState } from './useKeyboard'
 
 /** How high above the player's origin the camera aims. */
 const LOOK_HEIGHT = 1.4
@@ -19,6 +20,8 @@ const MAX_PITCH = 1.25
 const START_PITCH = 0.32
 
 const DRAG_SENSITIVITY = 0.005
+/** A / D (or the arrow keys) turn the camera at this many radians per second. */
+const KEY_TURN_SPEED = 2.3
 const ZOOM_SENSITIVITY = 0.01
 
 // Higher = snappier. Framerate-independent via the pow() smoothing below.
@@ -35,7 +38,7 @@ const CAMERA_PADDING = 0.35
  * Third-person orbit camera.
  *
  * Trails the player's rigid body, easing both position and look-at target.
- * Right-click drag orbits, the mouse wheel zooms.
+ * Right-click drag orbits, A / D turn it, the mouse wheel zooms.
  *
  * Reads the Rapier body directly rather than React state - the body is the
  * authoritative transform and updates every physics step, not every render.
@@ -133,6 +136,11 @@ export function FollowCamera({ bodyRef }) {
       orbit.current.yaw = cameraYaw
       initialised.current = false
     }
+
+    // A / D steer the view: hold D to turn right, A to turn left. Movement is camera
+    // relative, so W then carries the character wherever the camera now points.
+    const turn = (inputState.left ? 1 : 0) - (inputState.right ? 1 : 0)
+    if (turn) orbit.current.yaw += turn * KEY_TURN_SPEED * Math.min(delta, 0.05)
 
     const pos = body.translation()
     _target.set(pos.x, pos.y, pos.z)

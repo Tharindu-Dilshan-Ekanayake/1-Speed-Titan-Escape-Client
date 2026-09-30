@@ -11,6 +11,9 @@ import { DEFAULT_PROPORTIONS, useBloxityStore } from './store'
  */
 let initPromise = null
 
+/** How long to wait for an existing Bloxity session to restore before playing as a guest. */
+const SESSION_GRACE_MS = 1200
+
 /** Slots the SDK's equipped payload carries beyond the skin. */
 const PART_ID_KEYS = [
   'hatId',
@@ -164,7 +167,21 @@ export function BloxityProvider({ gameSlug, children }) {
           s.setEquipped(safeCall(sdk.avatar.getEquipped?.bind(sdk.avatar)) || null)
         }
 
-        useBloxityStore.getState().setStatus('ready')
+        // Signing in is automatic: if the SDK is still restoring a Bloxity session,
+        // give it a moment so the game opens as that player, not as a guest that
+        // flips identity a beat later. No session = the wait just times out.
+        const finish = () => useBloxityStore.getState().setStatus('ready')
+        if (useBloxityStore.getState().user) finish()
+        else {
+          const started = Date.now()
+          const poll = setInterval(() => {
+            if (cancelled || useBloxityStore.getState().user || Date.now() - started > SESSION_GRACE_MS) {
+              clearInterval(poll)
+              if (!cancelled) finish()
+            }
+          }, 60)
+          unsubscribers.push(() => clearInterval(poll))
+        }
       })
       .catch((err) => {
         if (cancelled) return

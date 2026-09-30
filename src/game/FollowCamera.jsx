@@ -1,13 +1,16 @@
 import { useFrame, useThree } from '@react-three/fiber'
+import { useRapier } from '@react-three/rapier'
 import { useEffect, useRef } from 'react'
 import { Vector3 } from 'three'
+
+import { useSession } from '../state/sessionStore'
 
 /** How high above the player's origin the camera aims. */
 const LOOK_HEIGHT = 1.4
 
 const MIN_DISTANCE = 3
-const MAX_DISTANCE = 20
-const START_DISTANCE = 8
+const MAX_DISTANCE = 26
+const START_DISTANCE = 10
 
 // Pitch limits, in radians. Stops the camera flipping over the top or sinking
 // under the track.
@@ -24,6 +27,9 @@ const LOOK_SMOOTHING = 8
 
 const _desired = new Vector3()
 const _target = new Vector3()
+const _toCam = new Vector3()
+/** Gap kept between the camera and whatever it would otherwise clip into. */
+const CAMERA_PADDING = 0.35
 
 /**
  * Third-person orbit camera.
@@ -33,18 +39,21 @@ const _target = new Vector3()
  *
  * Reads the Rapier body directly rather than React state - the body is the
  * authoritative transform and updates every physics step, not every render.
+ * Must live inside <Physics>: it raycasts the world to avoid clipping into walls.
  *
  * @param {{ bodyRef: React.MutableRefObject<any> }} props
  */
 export function FollowCamera({ bodyRef }) {
   const camera = useThree((s) => s.camera)
   const gl = useThree((s) => s.gl)
+  const { rapier, world } = useRapier()
 
   // Spherical offset from the player. A ref, not state: pointer events write to it
   // every mousemove and the frame loop reads it - re-rendering would be wasteful.
   const orbit = useRef({ yaw: 0, pitch: START_PITCH, distance: START_DISTANCE })
   const lookAt = useRef(new Vector3())
   const initialised = useRef(false)
+  const snapSeq = useRef(0)
 
   useEffect(() => {
     const el = gl.domElement
@@ -55,7 +64,8 @@ export function FollowCamera({ bodyRef }) {
     let lastY = 0
 
     const onPointerDown = (e) => {
-      if (e.button !== 2) return // right button only
+      // Right mouse button, or a finger dragging on the canvas (mobile).
+      if (e.button !== 2 && e.pointerType !== 'touch') return
       dragging = true
       lastX = e.clientX
       lastY = e.clientY
@@ -115,6 +125,15 @@ export function FollowCamera({ bodyRef }) {
     const body = bodyRef.current
     if (!body) return
 
+    // A teleport snaps the camera behind the player instead of swooping across
+    // the map.
+    const { cameraSnap, cameraYaw } = useSession.getState()
+    if (cameraSnap !== snapSeq.current) {
+      snapSeq.current = cameraSnap
+      orbit.current.yaw = cameraYaw
+      initialised.current = false
+    }
+
     const pos = body.translation()
     _target.set(pos.x, pos.y, pos.z)
 
@@ -138,6 +157,21 @@ export function FollowCamera({ bodyRef }) {
     camera.position.lerp(_desired, 1 - Math.pow(0.001, delta * (POSITION_SMOOTHING / 10)))
 
     _target.y += LOOK_HEIGHT
+
+    // Keep the camera on the player's side of walls, pillars and ceilings: cast from
+    // the look point toward the camera and pull in to just before the first hit.
+    _toCam.subVectors(camera.position, _target)
+    const dist = _toCam.length()
+    if (dist > 0.01) {
+      _toCam.divideScalar(dist)
+      const ray = new rapier.Ray(_target, _toCam)
+      const hit = world.castRay(ray, dist, true, undefined, undefined, undefined, body)
+      if (hit && hit.timeOfImpact < dist) {
+        const safe = Math.max(MIN_DISTANCE * 0.4, hit.timeOfImpact - CAMERA_PADDING)
+        camera.position.copy(_target).addScaledVector(_toCam, safe)
+      }
+    }
+
     lookAt.current.lerp(_target, 1 - Math.pow(0.001, delta * (LOOK_SMOOTHING / 10)))
     camera.lookAt(lookAt.current)
   })

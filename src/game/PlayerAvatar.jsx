@@ -13,6 +13,7 @@ import {
 } from '../bloxity/avatarAssets'
 import { loadOBJ, loadPartGLB, loadTexture } from '../bloxity/avatarLoader'
 import { useBloxity } from '../bloxity/BloxityContext'
+import { DEFAULT_PROPORTIONS } from '../bloxity/store'
 import {
   animateRig,
   applyPart,
@@ -52,10 +53,14 @@ function fallbackMotion(delta) {
  *   rescaled rather than trusted at native size.
  */
 export const PlayerAvatar = forwardRef(function PlayerAvatar(
-  { onReady, targetHeight = 1.8, motionRef, ...props },
+  { onReady, targetHeight = 1.8, motionRef, armsRef, equipped: equippedOverride, proportions: proportionsOverride, remote = false, ...props },
   ref,
 ) {
-  const { avatar: equipped, proportions, game } = useBloxity()
+  const own = useBloxity()
+  const { game } = own
+  // Remote players pass their own equipped set / proportions from the server.
+  const equipped = remote ? equippedOverride : own.avatar
+  const proportions = remote ? { ...DEFAULT_PROPORTIONS, ...(proportionsOverride || {}) } : own.proportions
   const { scene: baseScene } = useGLTF(BASE_BODY_URL)
   const [assembled, setAssembled] = useState(false)
 
@@ -101,7 +106,7 @@ export const PlayerAvatar = forwardRef(function PlayerAvatar(
     // hat/back can be removed rather than stacking up.
     const attached = []
 
-    game.loadingStep('Loading avatar…')
+    if (!remote) game.loadingStep('Loading avatar…')
 
     const jobs = []
 
@@ -183,7 +188,27 @@ export const PlayerAvatar = forwardRef(function PlayerAvatar(
         object.traverse((child) => child.geometry?.dispose())
       }
     }
-  }, [rig, equipped, game])
+  }, [rig, equipped, game, remote])
+
+  // Shoulder + fist positions for held blades. The rig's arms are two bones each;
+  // the fist sits about one lower-arm length past the elbow.
+  useEffect(() => {
+    if (!armsRef) return undefined
+    const bones = rig.bones
+    const upper = { [-1]: bones.ArmL1?.bone, [1]: bones.ArmR1?.bone }
+    const lower = { [-1]: bones.ArmL2?.bone, [1]: bones.ArmR2?.bone }
+    if (!upper[-1] || !lower[-1]) return undefined
+    const elbow = new Vector3()
+    const fn = (side, outShoulder, outHand) => {
+      upper[side].getWorldPosition(outShoulder)
+      lower[side].getWorldPosition(elbow)
+      outHand.subVectors(elbow, outShoulder).multiplyScalar(1.05).add(elbow)
+    }
+    armsRef.current = fn
+    return () => {
+      if (armsRef.current === fn) armsRef.current = null
+    }
+  }, [rig, armsRef])
 
   // --- Proportions -------------------------------------------------------------
   // Applied per frame rather than in an effect: every bone is reset to its rest pose

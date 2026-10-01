@@ -7,6 +7,7 @@ import {
   LevelUpSplash,
   QuestWatcher,
   ReviveModal,
+  AirMeter,
   StageBanner,
   StepPopups,
   Toasts,
@@ -36,6 +37,7 @@ export function HUD() {
       <CornerTools />
       <TouchControls />
       <StageBanner />
+      <AirMeter />
       <LevelUpSplash />
       <WinFlash />
       <Toasts />

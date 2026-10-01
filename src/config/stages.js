@@ -47,6 +47,10 @@ export const SAND_SURFACE = -0.35
  * Forest / city stages hang high above the ground where titans roam: it lies far
  * down so the drop reads at a glance, and falling past DEEP_KILL_Y is the end.
  */
+/** Seconds you can stay in water before you start to sink. */
+export const WATER_BREATH_S = 3
+/** Horizontal speed multiplier while swimming. */
+export const SWIM_SPEED = 0.55
 export const DEEP_FLOOR_Y = -12
 export const DEEP_KILL_Y = -4.5
 /** Ground mist over the drop: falling into it is the end. */
@@ -540,11 +544,12 @@ function segSwim(b, ctx) {
   b.platform(cx - hw, cx + hw, b.d, b.d + 6, 4, { mat: 'stone', body: 'mossrock', bottom: POOL_BOTTOM - 1 })
   b.d += 6
   const d0 = b.d
-  const len = Math.round(26 + ctx.t * 12)
+  // The swim has to fit inside the breath you get (WATER_BREATH_S): sized from swim speed.
+  const len = Math.round(Math.max(10, WATER_BREATH_S * 0.8 * SWIM_SPEED * ctx.run))
   b.floor(d0, d0 + len, 'water', { surface: WATER_SURFACE, bottom: POOL_BOTTOM, current: 0 })
   b.box(-b.W - 2, b.W + 2, POOL_BOTTOM - 1, POOL_BOTTOM, d0, d0 + len, 'stone')
   const exitX = b.laneX(cx + b.sign() * hw * 0.5, 7)
-  b.platform(exitX - 6, exitX + 6, d0 + len - 3, d0 + len, -1.4, { mat: 'stone', body: 'mossrock', bottom: POOL_BOTTOM })
+  b.platform(exitX - 6, exitX + 6, d0 + len - 3, d0 + len, -1.0, { mat: 'stone', body: 'mossrock', bottom: POOL_BOTTOM })
   const side = b.sign()
   const wd = d0 + len * 0.45
   b.waterfalls.push({ x: b.originX + side * (b.W - 0.06), side, z: b.z(wd), w: 10, top: 16, bottom: WATER_SURFACE })

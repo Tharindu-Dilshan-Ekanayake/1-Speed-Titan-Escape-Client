@@ -18,7 +18,7 @@ import {
   windGust,
 } from '../config/dynamics'
 import { FLOOR_KINDS } from '../config/biomes'
-import { ALL_HOOKS, DEEP_KILL_Y, floorAt, GATE_WALL_HALF, KILL_Y, STAGES, stageAt, VOID_KILL_Y } from '../config/stages'
+import { ALL_HOOKS, DEEP_KILL_Y, SWIM_SPEED, WATER_BREATH_S, floorAt, GATE_WALL_HALF, KILL_Y, STAGES, stageAt, VOID_KILL_Y } from '../config/stages'
 import { TREADMILL_BY_ID, treadmillUnlocked } from '../config/treadmills'
 import {
   currentWalkspeed,
@@ -60,8 +60,6 @@ const GRAPPLE_RELEASE = 9
 const SPRINT_ANIM_SPEED = 8.5
 /** Steps per second while AFK on a treadmill. */
 const TREADMILL_STEP_RATE = 3.2
-/** Horizontal speed multiplier while swimming. */
-const SWIM_SPEED = 0.55
 /** Sweepers and pendulum blades shove you instead of killing you. */
 const KNOCK_SPEED = 14
 const KNOCK_UP = 7
@@ -204,6 +202,7 @@ export function Player({ onAvatarReady, bodyRef: externalBodyRef }) {
     stun: 0,
     knockVy: 0,
     waterJump: 0,
+    waterTime: 0,
     wasInWater: false,
     inside: new Set(),
     deathPos: null,
@@ -306,6 +305,7 @@ export function Player({ onAvatarReady, bodyRef: externalBodyRef }) {
       s.grapple = null
       s.boost.set(0, 0, 0)
       s.stun = 0
+      s.waterTime = 0
       s.knockVy = 0
       s.jumpsUsed = 0
       s.lastStage = 0
@@ -354,7 +354,9 @@ export function Player({ onAvatarReady, bodyRef: externalBodyRef }) {
     const floor = stageData ? floorAt(stageData, pos.z) : null
     const fk = floor ? FLOOR_KINDS[floor.kind] : FLOOR_KINDS.lava
     if (floor?.kind === 'water') {
-      if (feetY < floor.surface - 1) water = floor
+      // In the water once the feet are ~0.6 under it; swimming holds you at 1.0 under,
+      // so the body rides on top with only the legs submerged.
+      if (feetY < floor.surface - 0.6) water = floor
     } else if (floor?.kind === 'tide') {
       if (feetY < tideHeight(floor, time) - 0.02) {
         die(s, session, progress, fk.msg)
@@ -508,8 +510,8 @@ export function Player({ onAvatarReady, bodyRef: externalBodyRef }) {
         s.jumpsUsed = 1
         sound.play('jump')
       } else if (water) {
-        // Kick up out of the water when close enough to the surface.
-        if (feetY > water.surface - 2.6) {
+        // Kick up out of the water when close enough to the surface (not once sinking).
+        if (feetY > water.surface - 2.6 && s.waterTime <= WATER_BREATH_S) {
           vy = JUMP_VELOCITY * 1.12
           s.jumpsUsed = 1
           s.waterJump = 0.35
@@ -548,11 +550,27 @@ export function Player({ onAvatarReady, bodyRef: externalBodyRef }) {
     } else {
       s.sandJump = true
     }
-    if (water && s.waterJump <= 0) {
-      // Float with head and shoulders above the surface.
-      const target = Math.max(-3.5, Math.min(3, (water.surface - 1.35 - feetY) * 3.5))
-      vy += (target - vy) * (1 - Math.exp(-dt * 5))
+    // Breath: you can swim for WATER_BREATH_S, then you go under and don't come back.
+    s.waterTime = water ? s.waterTime + dt : Math.max(0, s.waterTime - dt * 2)
+    playerState.air = Math.max(0, 1 - s.waterTime / WATER_BREATH_S)
+    const sinking = water && s.waterTime > WATER_BREATH_S
+    if (sinking) {
+      vy += (-4 - vy) * (1 - Math.exp(-dt * 4))
+      if (feetY < water.surface - 3.2) {
+        die(s, session, progress, 'Drowned!')
+        return
+      }
+    } else if (water && s.waterJump <= 0) {
+      // Ride on the surface. Gravity is switched off below (buoyancy): with it on, the
+      // pull (32 u/s^2) beats any smooth float force and you slowly sank to the bottom.
+      // First-order settle onto the float level (no overshoot, whatever the frame rate).
+      vy = Math.max(-4, Math.min(4.5, (water.surface - 1.0 - feetY) * Math.min(6, 0.7 / dt)))
       s.jumpsUsed = 0
+    }
+    const buoyant = Boolean(water) && !sinking && s.waterJump <= 0
+    if (buoyant !== s.buoyant) {
+      body.setGravityScale(buoyant ? 0 : 1, true)
+      s.buoyant = buoyant
     }
     if (water && !s.wasInWater && linvel.y < -3) {
       playerState.splash = { t: time, x: pos.x, y: water.surface, z: pos.z }

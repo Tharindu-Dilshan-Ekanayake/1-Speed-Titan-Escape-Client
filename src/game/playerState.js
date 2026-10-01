@@ -12,6 +12,8 @@ export const playerState = {
   barrierHit: null,
   /** Last water entry: { t, x, y, z } - drives the splash. */
   splash: null,
+  /** Breath left in the water, 1 (full) to 0 (sinking); 1 whenever out of the water. */
+  air: 1,
 }
 
 /**

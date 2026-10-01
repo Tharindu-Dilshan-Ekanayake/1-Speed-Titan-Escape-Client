@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { SPAWNS } from '../../config/layout'
+import { playerState } from '../../game/playerState'
 import { reviveCost } from '../../config/progression'
 import { STAGES } from '../../config/stages'
 import { useProgress } from '../../state/progressStore'
@@ -47,6 +48,40 @@ export function LevelUpSplash() {
         <span className="ol whitespace-nowrap text-[2.6em] leading-none">
           WALKSPEED {shown.ws0} ▶ {shown.ws1}
         </span>
+      </div>
+    </div>
+  )
+}
+
+/** Breath bar, shown only while you're in the water; it empties, then you sink. */
+export function AirMeter() {
+  const [air, setAir] = useState(1)
+  const last = useRef(1)
+  useEffect(() => {
+    let raf = 0
+    const tick = () => {
+      const a = playerState.air
+      if (Math.abs(a - last.current) > 0.01 || (a >= 1) !== (last.current >= 1)) {
+        last.current = a
+        setAir(a)
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [])
+  if (air >= 1) return null
+  const low = air < 0.4
+  return (
+    <div className="pointer-events-none absolute left-1/2 top-[38%] w-[16em] -translate-x-1/2 text-center">
+      <span className="ol text-[1.6em]" style={{ color: low ? '#ff6b6b' : '#8fe8ff' }}>
+        {air > 0 ? 'Swim! Get out!' : 'Sinking!'}
+      </span>
+      <div className="mt-[0.2em] h-[1.1em] overflow-hidden rounded-full border-[0.18em] border-[var(--ink)] bg-[#16102c]/80">
+        <div
+          className="h-full"
+          style={{ width: `${air * 100}%`, background: low ? 'linear-gradient(#ff9b8a,#e8263f)' : 'linear-gradient(#b8f6ff,#2f9bff)' }}
+        />
       </div>
     </div>
   )
